@@ -60,6 +60,7 @@ class svai:
         self.ln=200
         print(data_grunt)
         lis=[]
+        print("dfs")
         for i in range(len(data_grunt)):
             print(i)
             if self.ln <= data_grunt.iloc[i]["lsv"]:
@@ -69,7 +70,10 @@ class svai:
                 lis.append(col)
                 print(lis)
 
-        data_grunt.loc.repeat(lis)
+        data_grunt=data_grunt.loc[data_grunt.index.repeat(lis)].reset_index(drop=True)
+        data_grunt["sumLen"]=data_grunt["lsv"].cumsum()
+
+        data_grunt=data_grunt.query("sumLen<")
         print(data_grunt)
 
 
@@ -79,7 +83,10 @@ def test(data_svai: pd.DataFrame):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+
+
     book = xw.books
+
     sheet = book.active.sheets
 
     sheet_svai = xw.sheets["svai"]
@@ -89,11 +96,13 @@ if __name__ == '__main__':
     data_grunt["lsv"] = data_grunt["lsv"].apply(lambda x: x * 1000)  # Перевод в мм
 
     sheet = sheet.active
-    data_svai = sheet_svai.range("A1").options(pd.DataFrame, expand='table', index_col=True).value  # Сваи
-
+    data_svai = sheet_svai.range("A1").options(pd.DataFrame, expand='table', index_col=False).value  # Сваи
+    data_svai:pd.DataFrame
+    data_svai=data_svai.reset_index()
+    print(data_svai)
     data_list: pd.DataFrame
+    a=data_svai.apply(lambda )
     a = svai()
-
     a.setka(data_grunt)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
