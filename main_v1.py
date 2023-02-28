@@ -78,11 +78,10 @@ class SvAi:
         self.Ar_sum = self.data_grunt_new["Ar"].sum()
 
         self.data_grunt_new["b"] = self.data_grunt_new["sumLen"] * (self.b1 - self.b2) / self.l + self.b2
-        self.data_grunt_new["b"] = (self.data_grunt_new["b"] + self.data_grunt_new["b"].shift(-1,
-                                                                                              fill_value=self.b1)) / 2# Находим сечение по центру конечного элемента
         self.data_grunt_new["h"] = self.data_grunt_new["sumLen"] * (self.h1 - self.h2) / self.l + self.h2
-        self.data_grunt_new["h"] = (self.data_grunt_new["h"] + self.data_grunt_new["h"].shift(-1,
-                                                                                              fill_value=self.h1)) / 2# Находим сечение по центру конечного элемента
+        self.data_grunt_new["fi"]=self.b1-(self.b1-self.b2)/2*(self.data_grunt_new["sumLen"]-self.data_grunt_new["sumLen"].shift(1))
+        print(self.data_grunt_new)
+
 
         self.data_grunt_new["k"] = self.data_grunt_new.apply(lambda row: self.koeffic_postely(row), axis=1)
         self.data_grunt_new["B"] = self.data_grunt_new.apply(lambda row: self.Gest_Sechen(row),
@@ -90,11 +89,9 @@ class SvAi:
         print(self.data_grunt_new)
         self.data_grunt_new["k_elem"] = self.data_grunt_new.apply(lambda row: self.matrix_B(row),
                                                                   axis=1)  # Матрица жесткости
-        self.len_matr = len(self.data_grunt_new)
+        self.len_matr= len(self.data_grunt_new)
         self.matrix_force = self.Matrix_Force()
-        self.data_grunt_new["u"]=0# заполняем перемещения 0
-
-        # print(self.data_grunt_new)
+        #print(self.data_grunt_new)
 
     def setka(self, data_grunt):
         """
@@ -156,13 +153,12 @@ class SvAi:
         момент инеруии
         :return:
         """
-
         I = (a * b ** 3) / 12
         return I
 
     def Matrix_Force(self):
         matrix_force = np.array([[self.P], [self.M]])
-        matrix_force = np.append(matrix_force, np.zeros((self.len_matr - 2, 1)))
+        matrix_force=np.append(matrix_force,np.zeros((self.len_matr-2, 1)))
         print("-----------")
         print(matrix_force)
 
@@ -174,7 +170,7 @@ class SvAi:
         :param table:
         :return: Матрица жесткости
         """
-        # print(table)
+        #print(table)
         I = self.Moment_inerc(table["b"], table["h"])
 
         a_11 = 13 / 35 * table["k"] * table["b"] * self.ln_elem + 12 * self.Eb * I / (self.ln_elem ** 3)
@@ -200,13 +196,15 @@ class SvAi:
         return
 
 
+
+
 def table_iterrator(table: pd.DataFrame):
     for row in table.itertuples(index=True):
         print(f"--------------{row[0]}--------------------")
         data = SvAi(*(row[1:]))
 
         try:
-            dictё_ = dict_.append(None, ignore_index=True)
+            dict_ = dict_.append(None, ignore_index=True)
         except:
             dict_ = pd.DataFrame(None, index=[0])
 
