@@ -65,7 +65,7 @@ class SvAi:
         self.Es_n = 2 * 10 ** 5  # модуль упругости напрягаемой арматуры !!!!!!!!!!!
         self.Eb = 30 * 10 ** 3  # модуль упругости бетона!!!!!!
         self.Ea = 206000  # Н/мм2 модуль арматуры не напрягаемой
-        self.Eaн = 000  # Н/мм2 модуль арматуры напрягаемой
+        self.Eaн = 200000  # Н/мм2 модуль арматуры напрягаемой
         self.As = As * 100  # лощадь арматуры мм2
         self.As_ = As_ * 100  # площадь растянутой арматуры мм2
         self.As2 = As2 * 100  # лощадь арматуры мм2
@@ -204,7 +204,6 @@ def table_iterrator(table: pd.DataFrame):
     for row in table.itertuples(index=True):
         print(f"--------------{row[0]}--------------------")
         data = SvAi(*(row[1:]))
-
         try:
             dictё_ = dict_.append(None, ignore_index=True)
         except:
