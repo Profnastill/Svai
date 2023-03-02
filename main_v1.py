@@ -1,13 +1,19 @@
 ##
 import math
 
+import numpy
 import numpy as np
 import pandas as pd
 import xlwings as xw
 
 pd.options.display.max_rows = 1000
-pd.options.display.max_columns = 20
+pd.options.display.max_columns = 30
 pd.options.display.expand_frame_repr = False
+np.set_printoptions(edgeitems=30,linewidth=10000)
+np.set_printoptions(edgeitems=4,linewidth=180)
+np.set_printoptions(precision=3)
+
+np.core.arrayprint._line_width = 80
 # movies.head()
 
 
@@ -54,9 +60,9 @@ class SvAi:
         self.N = N * 1000  # Продольная сила Н
         self.l = l * 1000  # длина сваи мм
         self.b1 = b1  # мм
-        self.b2 = b2  # мм
+        self.b2 = b1  # мм
         self.h1 = h1  # мм
-        self.h2 = h2  # мм
+        self.h2 = h1  # мм
         gamma_b = 1.3
         print(data_Rb)
         self.k_zondir = (1 if Zondir == "Стабилизация" else 0.6)  # Коэффициент зондирования
@@ -65,7 +71,7 @@ class SvAi:
         self.Es_n = 2 * 10 ** 5  # модуль упругости напрягаемой арматуры !!!!!!!!!!!
         self.Eb = 30 * 10 ** 3  # модуль упругости бетона!!!!!!
         self.Ea = 206000  # Н/мм2 модуль арматуры не напрягаемой
-        self.Eaн = 000  # Н/мм2 модуль арматуры напрягаемой
+        self.Eaн = 200000  # Н/мм2 модуль арматуры напрягаемой
         self.As = As * 100  # лощадь арматуры мм2
         self.As_ = As_ * 100  # площадь растянутой арматуры мм2
         self.As2 = As2 * 100  # лощадь арматуры мм2
@@ -73,27 +79,66 @@ class SvAi:
         self.a = 30  # Толщина защитного слоя    мм
         self.a_n = 40  # толщина защитного слоя для напрягаемой арматуры мм
 
-        self.data_grunt_new = self.setka(data_grunt).copy()  # Разбиваем грунт на конечные элементы
+        self.table = self.fun_Setka(data_grunt).copy()  # Разбиваем грунт на конечные элементы
 
-        self.Ar_sum = self.data_grunt_new["Ar"].sum()
+        self.Ar_sum = self.table["Ar"].sum()
 
-        self.data_grunt_new["b"] = self.data_grunt_new["sumLen"] * (self.b1 - self.b2) / self.l + self.b2
-        self.data_grunt_new["h"] = self.data_grunt_new["sumLen"] * (self.h1 - self.h2) / self.l + self.h2
-        self.data_grunt_new["fi"]=self.b1-(self.b1-self.b2)/2*(self.data_grunt_new["sumLen"]-self.data_grunt_new["sumLen"].shift(1))
-        print(self.data_grunt_new)
+        self.table["x_1"] = self.table["lsv"].shift(1, fill_value=0).cumsum()  # ??
+        self.table["x_2"] = self.table["lsv"].cumsum()  # ???
+
+        self.table["fi1"] = self.b1 - (self.b1 - self.b2) / self.l * (
+                self.table["x_1"] + self.table["x_2"])
+
+        self.table["fi2"] = self.b1 - (self.b1 - self.b2) / self.l * (
+                self.table["x_1"] - self.table["x_2"])
+
+        self.table["bi"] = self.table["fi1"] / 2
+        self.fun_Bi()#Жесткость элемента
+
+        print(self.table)
+
+        self.table["K"] = self.table.apply(lambda row: self.Koeffic_Postely(row), axis=1)#определяем коэффициент постели
+        self.table["B"]=self.table.apply(lambda row: self.matrix_B_piramida(row), axis=1)#Матрица жесткости
+        self.len_matr = len(self.table)
+        matrix_force = self.fun_Matrix_Force()
+        print(self.table["B"])
+        self.table["U"]=self.table["B"].apply(lambda row: self.fun_matrix_u(matrix_force, row))
+
+        print(self.table)
 
 
-        self.data_grunt_new["k"] = self.data_grunt_new.apply(lambda row: self.koeffic_postely(row), axis=1)
-        self.data_grunt_new["B"] = self.data_grunt_new.apply(lambda row: self.Gest_Sechen(row),
-                                                             axis=1)  # Жесткость элемента
-        print(self.data_grunt_new)
+        """""""""
+        self.data_grunt_new["K"] = self.data_grunt_new.apply(lambda row: self.Koeffic_Postely(row), axis=1)
+       # self.data_grunt_new["B"] = self.data_grunt_new.apply(lambda row: self.Gest_Sechen(row),
+       #                                                      axis=1)  # Жесткость элемента
+
         self.data_grunt_new["k_elem"] = self.data_grunt_new.apply(lambda row: self.matrix_B(row),
-                                                                  axis=1)  # Матрица жесткости
-        self.len_matr= len(self.data_grunt_new)
-        self.matrix_force = self.Matrix_Force()
-        #print(self.data_grunt_new)
 
-    def setka(self, data_grunt):
+                                                                  axis=1)  # Матрица жесткости
+                                                                  """""
+
+
+        # print(self.data_grunt_new)
+
+    def fun_Bi(self):
+        """
+        Определение коэффициентов
+        :return:
+        """
+
+        self.table['Bi__'] = (35 * self.table["fi1"] ** 4) + (
+                126 * self.table["fi1"] ** 2 + self.table["fi2"] ** 2) + (
+                                     15 * self.table["fi2"] ** 4)
+        self.table['Bi__1'] = 35 * self.table["fi1"] ** 4 + (
+                154 * self.table["fi1"] ** 2 + self.table["fi2"] ** 2) + (
+                                      19 * self.table["fi2"] ** 4)
+        self.table['Bi__2'] = (35 * self.table["fi1"] ** 4) + (
+                112 * self.table["fi1"] ** 2 + self.table["fi2"] ** 2) + (
+                                      13 * self.table["fi2"] ** 4)
+        self.table['Bi__3'] = (70 * self.table["fi1"] ** 4) + (
+                42 * self.table["fi1"] ** 2 + self.table["fi2"] ** 3)
+
+    def fun_Setka(self, data_grunt):
         """
         Разбивка сетки конечных элементов
         :return:
@@ -113,15 +158,15 @@ class SvAi:
         data_grunt = data_grunt.query("sumLen<= @self.l")
         return data_grunt
 
-    def koeffic_postely(self, table: pd.DataFrame):
+    def Koeffic_Postely(self, table: pd.DataFrame):
         """
         :param table:
         :return: коэффициент постели
         """
         print(table)
         print("----")
-        print(f"l={self.l},{table['b']}")
-        self.w = self.l // table["b"]
+        print(f"l={self.l},{table['bi']}")
+        self.w = self.l // table["bi"]
         print("-----------w= ", self.w)
         if self.w < 10:
             self.w = data_w.query("lc_bi==@self.w")
@@ -130,9 +175,9 @@ class SvAi:
         print("w=", self.w)
 
         if table["Er"] != None and table["Er"] != 0:
-            k = table["Ar"] * table["Er"] * self.w / (1 - table["Nu"] ** 2) * table["b"]
+            k = table["Ar"] * table["Er"] * self.w / (1 - table["Nu"] ** 2) * table["bi"]
         else:
-            k = self.k_zondir * self.Ar_sum * self.w / ((1 - table["Nu"] ** 2)) * table["b"] * (
+            k = self.k_zondir * self.Ar_sum * self.w / ((1 - table["Nu"] ** 2)) * table["bi"] * (
                     5.5 * table["qi"] + (table["qi"] / 50) ** 2)
         return k
 
@@ -148,63 +193,106 @@ class SvAi:
                 table["h"] - self.a_n) ** 2 * 0.85 * self.Eb
         return B
 
-    def Moment_inerc(self, a, b):
-        """
-        момент инеруии
-        :return:
-        """
-        I = (a * b ** 3) / 12
-        return I
 
-    def Matrix_Force(self):
+    def fun_Matrix_Force(self):
         matrix_force = np.array([[self.P], [self.M]])
-        matrix_force=np.append(matrix_force,np.zeros((self.len_matr-2, 1)))
+        matrix_force = np.append(matrix_force, np.zeros((self.len_matr * 2 - 2, 1)))
         print("-----------")
-        print(matrix_force)
-
+        print(type(matrix_force))
         return matrix_force
 
-    def matrix_B(self, table: pd.DataFrame):
+    def matrix_B_piramida(self, table: pd.DataFrame):
         """
         Матрица жесткостей
         :param table:
         :return: Матрица жесткости
         """
         #print(table)
-        I = self.Moment_inerc(table["b"], table["h"])
+       # I = self.Moment_inerc(table["b"], table["h"])
+        self.dzeta = 1
+        a_11 = 1 / 560 * (self.dzeta * ((self.Eb / table["lsv"] ** 3) * table["Bi__"]) + 8 *
+                          table["lsv"] * table["K"] * (
+                                  13 * table["fi1"] + 7 * table["fi2"]))
 
-        a_11 = 13 / 35 * table["k"] * table["b"] * self.ln_elem + 12 * self.Eb * I / (self.ln_elem ** 3)
-        a_12 = a_21 = 11 / 210 * table["k"] * table["b"] * self.ln_elem ** 2 + 6 * self.Eb * I / (self.ln_elem ** 2)
-        a_13 = a_31 = 9 / 70 * table["k"] * table["b"] * self.ln_elem - 12 * self.Eb * I / (self.ln_elem ** 3)
-        a_14 = a_41 = 6 * self.Eb * I / (self.ln_elem ** 2) - 13 / 420 * table["k"] * table["b"] * self.ln_elem ** 2
-        a_22 = 1 / 105 * table["k"] * table["b"] * self.ln_elem ** 3 + 4 * self.Eb * I / self.ln_elem
-        a_23 = a_32 = 13 / 420 * table["k"] * table["b"] * self.ln_elem ** 2 - 6 * self.Eb * I / self.ln_elem ** 2
-        a_24 = a_42 = 2 * self.Eb * I / self.ln_elem - 1 / 140 * table["k"] * table["b"] * self.ln_elem ** 3
-        a_33 = 13 / 35 * table["k"] * table["b"] * self.ln_elem + 12 * self.Eb * I / self.ln_elem ** 3
-        a_34 = a_43 = -11 / 210 * table["k"] * table["b"] * self.ln_elem ** 2 - 6 * self.Eb * I / self.ln_elem ** 2
-        a_44 = 1 / 105 * table["k"] * table["b"] * self.ln_elem ** 3 + 4 * self.Eb * I / self.ln_elem
+        a_12 = a_21 = 1 / 3360 * (self.dzeta * ((self.Eb / table["lsv"] ** 2) * (
+                3 * table["Bi__"] + 2 * table["Bi__3"])) + 8 * (table[
+                                                                                               "lsv"] ** 2) *
+                                  table["K"] * (
+                                          11 * table["fi1"] + 4 * table["fi2"]))
+        a_13 = a_31 = 1 / 560 * (
+                -1 * self.dzeta * (self.Eb / table["lsv"] ** 3) * table["Bi__"] + 36 *
+                table["lsv"] * table["K"] * table["fi1"])
 
-        k_elem = np.array([[a_11, a_12, a_13, a_14], [a_21, a_22, a_23, a_24], [a_31, a_32, a_33, a_34],
+        a_14 = a_41 = 1 / 3360 * (self.dzeta * (self.Eb / table["lsv"] ** 2) * (
+                3 * table["Bi__"] - 2 * table["Bi__3"]) - 4 * (
+                                          table["lsv"] ** 2 * table["K"] * (
+                                          13 * table["fi1"] + table["fi2"])))# !!!!! уТОЧНИТЬ ЗНАК
+
+        a_22 = 1 / 1680 * (self.dzeta * (self.Eb / table["lsv"]) * (table["Bi__2"] +
+                                                                         table["Bi__3"]) + 2 * table["lsv"] ** 3 *
+                           table[
+                               "K"] * (4 *
+                                       table["fi1"] + table["fi2"]))
+
+        a_23 = a_32 = 1 / 3360 * (-self.dzeta * (self.Eb / table["lsv"] ** 2) * (
+                3 * table["Bi__"] + 2 * table["Bi__3"]) + 4 * table[
+                                      "lsv"] ** 2 * table["K"] * (
+                                          13 * table["fi1"] - table["fi2"]))
+
+        a_24 = a_42 = 1 / 3360 * (
+                self.dzeta * (self.Eb / table["lsv"]) * table["Bi__"] - 12 *
+                table["lsv"] ** 3 * table["K"] * table["fi1"])
+
+        a_33 = 1 / 560 * (self.dzeta * (self.Eb / table["lsv"] ** 3) * table["Bi__"] + 8 *
+                          table["lsv"] * table["K"] * (
+                                  13 * table["fi1"] - 7 * table["fi2"]))
+
+        a_34 = a_43 = 1 / 3360 * (-self.dzeta * (self.Eb / table["lsv"] ** 2) * (
+                3 * table["Bi__2"] - 2 * table["Bi__3"]) + 8 * table["lsv"] ** 2 * table["K"] * (
+                                          4 * table["fi2"] - 11 * table["fi1"]))
+
+        a_44 = 1 / 1680 * (self.dzeta * (self.Eb / table["lsv"]) * (table["Bi__2"] -
+                                                                         table["Bi__3"]) + 2 * table["lsv"] ** 3 * table[
+                   "K"] * (4 * table["fi1"] - table["fi2"]))
+
+        k_elem = np.array([[a_11, a_12, a_13, a_14],
+                           [a_21, a_22, a_23, a_24],
+                           [a_31, a_32, a_33, a_34],
                            [a_41, a_42, a_43, a_44]])  # self.ln лина конечного элемента
+        print(k_elem)
+        print(k_elem.shape)
         return k_elem  # Матрица жесткости
 
-    def matrix_u(self):
+    def fun_matrix_u(self,matrix_force,matrix_B_gestk):
         """
         Матрица перемещений
-        :return:
+        :return: матрица перемещений
+
+
         """
-        return
+
+        U:np
+        print("---------+")
+        print(type(matrix_force),len(matrix_force))
+        print(type(matrix_B_gestk),len(matrix_B_gestk))
+        print(matrix_B_gestk.shape)
+        print(matrix_B_gestk)
 
 
+        print("=====-")
+
+        U=np.dot(np.linalg.matrix_power(matrix_B_gestk, -1)*matrix_force)
+
+
+        return U
 
 
 def table_iterrator(table: pd.DataFrame):
     for row in table.itertuples(index=True):
         print(f"--------------{row[0]}--------------------")
         data = SvAi(*(row[1:]))
-
         try:
-            dict_ = dict_.append(None, ignore_index=True)
+            dictё_ = dict_.append(None, ignore_index=True)
         except:
             dict_ = pd.DataFrame(None, index=[0])
 

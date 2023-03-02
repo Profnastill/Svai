@@ -87,8 +87,11 @@ class SvAi:
         self.data_grunt_new["k"] = self.data_grunt_new.apply(lambda row: self.koeffic_postely(row), axis=1)
         self.data_grunt_new["B"] = self.data_grunt_new.apply(lambda row: self.Gest_Sechen(row),
                                                              axis=1)  # Жесткость элемента
+        self.data_grunt_new=self.data_grunt_new.drop(labels=[0, len(self.data_grunt_new)-1]).reindex()#удаляем из таблицы первый и последний элемент, так как это не кэ а просто край
+
         print(self.data_grunt_new)
         self.data_grunt_new["k_elem"] = self.data_grunt_new.apply(lambda row: self.matrix_B(row),
+
                                                                   axis=1)  # Матрица жесткости
         self.len_matr = len(self.data_grunt_new)
         self.matrix_force = self.Matrix_Force()
