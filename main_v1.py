@@ -9,8 +9,8 @@ import xlwings as xw
 pd.options.display.max_rows = 1000
 pd.options.display.max_columns = 30
 pd.options.display.expand_frame_repr = False
-np.set_printoptions(edgeitems=30,linewidth=10000)
-np.set_printoptions(edgeitems=4,linewidth=180)
+np.set_printoptions(edgeitems=30, linewidth=10000)
+np.set_printoptions(edgeitems=4, linewidth=180)
 np.set_printoptions(precision=3)
 
 np.core.arrayprint._line_width = 80
@@ -93,26 +93,24 @@ class SvAi:
                 self.table_bs["x_1"] - self.table_bs["x_2"])
 
         self.table_bs["bi"] = self.table_bs["fi1"] / 2
-        self.fun_Bi()#Жесткость элемента
+        self.fun_Bi()  # Жесткость элемента
 
         print(self.table_bs)
 
-        self.table_bs["K"] = self.table_bs.apply(lambda row: self.Koeffic_Postely(row), axis=1)#определяем коэффициент постели
-        self.table_bs["B"]=self.table_bs.apply(lambda row: self.matrix_B_piramida(row), axis=1)#Матрица жесткости
+        self.table_bs["K"] = self.table_bs.apply(lambda row: self.Koeffic_Postely(row),
+                                                 axis=1)  # определяем коэффициент постели
+        self.table_bs["B"] = self.table_bs.apply(lambda row: self.matrix_B_piramida(row), axis=1)  # Матрица жесткости
 
         print(self.table_bs["B"])
-        matrix_B=np.array(self.table_bs["B"].tolist())
-
-
+        matrix_B = np.array(self.table_bs["B"].tolist())
 
         print(f"matrix b\n {matrix_B}\n {matrix_B.shape}")
         self.len_matr = len(self.table_bs)
         matrix_force = self.fun_Matrix_Force()
         print(self.table_bs["B"])
-        self.table_bs["U"]=self.table_bs["B"].apply(lambda row: self.fun_matrix_u(matrix_force, row))
+        self.table_bs["U"] = self.table_bs["B"].apply(lambda row: self.fun_matrix_u(matrix_force, row))
 
         print(self.table_bs)
-
 
         """""""""
         self.data_grunt_new["K"] = self.data_grunt_new.apply(lambda row: self.Koeffic_Postely(row), axis=1)
@@ -123,7 +121,6 @@ class SvAi:
 
                                                                   axis=1)  # Матрица жесткости
                                                                   """""
-
 
         # print(self.data_grunt_new)
 
@@ -200,7 +197,6 @@ class SvAi:
                 table["h"] - self.a_n) ** 2 * 0.85 * self.Eb
         return B
 
-
     def fun_Matrix_Force(self):
         matrix_force = np.array([[self.P], [self.M]])
         matrix_force = np.append(matrix_force, np.zeros((self.len_matr * 2 - 2, 1)))
@@ -214,8 +210,8 @@ class SvAi:
         :param table:
         :return: Матрица жесткости
         """
-        #print(table)
-       # I = self.Moment_inerc(table["b"], table["h"])
+        # print(table)
+        # I = self.Moment_inerc(table["b"], table["h"])
         self.dzeta = 1
         a_11 = 1 / 560 * (self.dzeta * ((self.Eb / table["lsv"] ** 3) * table["Bi__"]) + 8 *
                           table["lsv"] * table["K"] * (
@@ -223,7 +219,7 @@ class SvAi:
 
         a_12 = a_21 = 1 / 3360 * (self.dzeta * ((self.Eb / table["lsv"] ** 2) * (
                 3 * table["Bi__"] + 2 * table["Bi__3"])) + 8 * (table[
-                                                                                               "lsv"] ** 2) *
+                                                                    "lsv"] ** 2) *
                                   table["K"] * (
                                           11 * table["fi1"] + 4 * table["fi2"]))
         a_13 = a_31 = 1 / 560 * (
@@ -233,10 +229,10 @@ class SvAi:
         a_14 = a_41 = 1 / 3360 * (self.dzeta * (self.Eb / table["lsv"] ** 2) * (
                 3 * table["Bi__"] - 2 * table["Bi__3"]) - 4 * (
                                           table["lsv"] ** 2 * table["K"] * (
-                                          13 * table["fi1"] + table["fi2"])))# !!!!! уТОЧНИТЬ ЗНАК
+                                          13 * table["fi1"] + table["fi2"])))  # !!!!! уТОЧНИТЬ ЗНАК
 
         a_22 = 1 / 1680 * (self.dzeta * (self.Eb / table["lsv"]) * (table["Bi__2"] +
-                                                                         table["Bi__3"]) + 2 * table["lsv"] ** 3 *
+                                                                    table["Bi__3"]) + 2 * table["lsv"] ** 3 *
                            table[
                                "K"] * (4 *
                                        table["fi1"] + table["fi2"]))
@@ -259,22 +255,22 @@ class SvAi:
                                           4 * table["fi2"] - 11 * table["fi1"]))
 
         a_44 = 1 / 1680 * (self.dzeta * (self.Eb / table["lsv"]) * (table["Bi__2"] -
-                                                                         table["Bi__3"]) + 2 * table["lsv"] ** 3 * table[
-                   "K"] * (4 * table["fi1"] - table["fi2"]))
-
-
-
-
-
+                                                                    table["Bi__3"]) + 2 * table["lsv"] ** 3 * table[
+                               "K"] * (4 * table["fi1"] - table["fi2"]))
 
         k_elem = ([a_11, a_12, a_13, a_14],
-                           [a_21, a_22, a_23, a_24],
-                           [a_31, a_32, a_33, a_34],
-                           [a_41, a_42, a_43, a_44])  # self.ln лина конечного элемента
+                  [a_21, a_22, a_23, a_24],
+                  [a_31, a_32, a_33, a_34],
+                  [a_41, a_42, a_43, a_44])  # self.ln лина конечного элемента
+
+        R_11 = np.array([[a_11, a_12], [a_21, a_22]])
+        R_22 =np.array([[a_33,a_34],[a_43,a_44]])
+        R_12=R_21=np.array([[a_13,a_14],[a_23,a_24]])
+
 
         return k_elem  # Матрица жесткости
 
-    def fun_matrix_u(self,matrix_force,matrix_B_gestk):
+    def fun_matrix_u(self, matrix_force, matrix_B_gestk):
         """
         Матрица перемещений
         :return: матрица перемещений
@@ -282,18 +278,16 @@ class SvAi:
 
         """
 
-        U:np
+        U: np
         print("---------+")
-        print(type(matrix_force),len(matrix_force))
-        print(type(matrix_B_gestk),len(matrix_B_gestk))
+        print(type(matrix_force), len(matrix_force))
+        print(type(matrix_B_gestk), len(matrix_B_gestk))
         print(matrix_B_gestk.shape)
         print(matrix_B_gestk)
 
-
         print("=====-")
 
-        U=np.dot(np.linalg.matrix_power(matrix_B_gestk, -1)*matrix_force)
-
+        U = np.dot(np.linalg.matrix_power(matrix_B_gestk, -1) * matrix_force)
 
         return U
 
