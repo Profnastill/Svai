@@ -79,32 +79,39 @@ class SvAi:
         self.a = 30  # Толщина защитного слоя    мм
         self.a_n = 40  # толщина защитного слоя для напрягаемой арматуры мм
 
-        self.table = self.fun_Setka(data_grunt).copy()  # Разбиваем грунт на конечные элементы
+        self.table_bs = self.fun_Setka(data_grunt).copy()  # Разбиваем грунт на конечные элементы
 
-        self.Ar_sum = self.table["Ar"].sum()
+        self.Ar_sum = self.table_bs["Ar"].sum()
 
-        self.table["x_1"] = self.table["lsv"].shift(1, fill_value=0).cumsum()  # ??
-        self.table["x_2"] = self.table["lsv"].cumsum()  # ???
+        self.table_bs["x_1"] = self.table_bs["lsv"].shift(1, fill_value=0).cumsum()  # ??
+        self.table_bs["x_2"] = self.table_bs["lsv"].cumsum()  # ???
 
-        self.table["fi1"] = self.b1 - (self.b1 - self.b2) / self.l * (
-                self.table["x_1"] + self.table["x_2"])
+        self.table_bs["fi1"] = self.b1 - (self.b1 - self.b2) / self.l * (
+                self.table_bs["x_1"] + self.table_bs["x_2"])
 
-        self.table["fi2"] = self.b1 - (self.b1 - self.b2) / self.l * (
-                self.table["x_1"] - self.table["x_2"])
+        self.table_bs["fi2"] = self.b1 - (self.b1 - self.b2) / self.l * (
+                self.table_bs["x_1"] - self.table_bs["x_2"])
 
-        self.table["bi"] = self.table["fi1"] / 2
+        self.table_bs["bi"] = self.table_bs["fi1"] / 2
         self.fun_Bi()#Жесткость элемента
 
-        print(self.table)
+        print(self.table_bs)
 
-        self.table["K"] = self.table.apply(lambda row: self.Koeffic_Postely(row), axis=1)#определяем коэффициент постели
-        self.table["B"]=self.table.apply(lambda row: self.matrix_B_piramida(row), axis=1)#Матрица жесткости
-        self.len_matr = len(self.table)
+        self.table_bs["K"] = self.table_bs.apply(lambda row: self.Koeffic_Postely(row), axis=1)#определяем коэффициент постели
+        self.table_bs["B"]=self.table_bs.apply(lambda row: self.matrix_B_piramida(row), axis=1)#Матрица жесткости
+
+        print(self.table_bs["B"])
+        matrix_B=np.array(self.table_bs["B"].tolist())
+
+
+
+        print(f"matrix b\n {matrix_B}\n {matrix_B.shape}")
+        self.len_matr = len(self.table_bs)
         matrix_force = self.fun_Matrix_Force()
-        print(self.table["B"])
-        self.table["U"]=self.table["B"].apply(lambda row: self.fun_matrix_u(matrix_force, row))
+        print(self.table_bs["B"])
+        self.table_bs["U"]=self.table_bs["B"].apply(lambda row: self.fun_matrix_u(matrix_force, row))
 
-        print(self.table)
+        print(self.table_bs)
 
 
         """""""""
@@ -126,17 +133,17 @@ class SvAi:
         :return:
         """
 
-        self.table['Bi__'] = (35 * self.table["fi1"] ** 4) + (
-                126 * self.table["fi1"] ** 2 + self.table["fi2"] ** 2) + (
-                                     15 * self.table["fi2"] ** 4)
-        self.table['Bi__1'] = 35 * self.table["fi1"] ** 4 + (
-                154 * self.table["fi1"] ** 2 + self.table["fi2"] ** 2) + (
-                                      19 * self.table["fi2"] ** 4)
-        self.table['Bi__2'] = (35 * self.table["fi1"] ** 4) + (
-                112 * self.table["fi1"] ** 2 + self.table["fi2"] ** 2) + (
-                                      13 * self.table["fi2"] ** 4)
-        self.table['Bi__3'] = (70 * self.table["fi1"] ** 4) + (
-                42 * self.table["fi1"] ** 2 + self.table["fi2"] ** 3)
+        self.table_bs['Bi__'] = (35 * self.table_bs["fi1"] ** 4) + (
+                126 * self.table_bs["fi1"] ** 2 + self.table_bs["fi2"] ** 2) + (
+                                        15 * self.table_bs["fi2"] ** 4)
+        self.table_bs['Bi__1'] = 35 * self.table_bs["fi1"] ** 4 + (
+                154 * self.table_bs["fi1"] ** 2 + self.table_bs["fi2"] ** 2) + (
+                                         19 * self.table_bs["fi2"] ** 4)
+        self.table_bs['Bi__2'] = (35 * self.table_bs["fi1"] ** 4) + (
+                112 * self.table_bs["fi1"] ** 2 + self.table_bs["fi2"] ** 2) + (
+                                         13 * self.table_bs["fi2"] ** 4)
+        self.table_bs['Bi__3'] = (70 * self.table_bs["fi1"] ** 4) + (
+                42 * self.table_bs["fi1"] ** 2 + self.table_bs["fi2"] ** 3)
 
     def fun_Setka(self, data_grunt):
         """
@@ -255,12 +262,16 @@ class SvAi:
                                                                          table["Bi__3"]) + 2 * table["lsv"] ** 3 * table[
                    "K"] * (4 * table["fi1"] - table["fi2"]))
 
-        k_elem = np.array([[a_11, a_12, a_13, a_14],
+
+
+
+
+
+        k_elem = ([a_11, a_12, a_13, a_14],
                            [a_21, a_22, a_23, a_24],
                            [a_31, a_32, a_33, a_34],
-                           [a_41, a_42, a_43, a_44]])  # self.ln лина конечного элемента
-        print(k_elem)
-        print(k_elem.shape)
+                           [a_41, a_42, a_43, a_44])  # self.ln лина конечного элемента
+
         return k_elem  # Матрица жесткости
 
     def fun_matrix_u(self,matrix_force,matrix_B_gestk):
