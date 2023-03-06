@@ -57,7 +57,12 @@ def mat_umn2(test, m):
     test2= test[(i+3) * 2: (i+1+3) * 2, (i+3) * 2:(i + 1) * 2]
     print(test2)
 
+    test[i:(i+1)*2:-2*(i+1)]=m[0:2,:-2]# R11
+
+
     test[i * 4: (i + 1) * 4, i * 4:(i + 1) * 4] = +m
+
+
 
     # test[i * 4: (i + 1) * 4, i * 4:(i + 1) * 4] = +m
     test.shape
