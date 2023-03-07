@@ -279,8 +279,8 @@ class SvAi:
 
         print(f"cложен \n {self.R_22 + self.R_11}")
 
-        mr.R_11=R_11
-        mr.R_22=R_22
+        mr.R_11 = R_11
+        mr.R_22 = R_22
 
 
 

@@ -93,6 +93,8 @@ class Matrix:
 if __name__ == '__main__':
     mat = Matrix()
     mat.mat_Test()
+    print(type(mat))
     test=mat.test_matrix_add(14)# создание единичной матрицы заполненно 1
-    mat.mat_umn2(test,i=13)# i номер КЭ для которого ищем матрицу
+    mat.mat_umn2(test,i=10)# i номер КЭ для которого ищем матрицу
+
 
