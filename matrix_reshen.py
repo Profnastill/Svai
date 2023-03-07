@@ -74,7 +74,7 @@ class Matrix:
 
     def mat_umn2(self, test, i=13):
         """
-        :param test: 
+        :param test: Матрица нулевая обобщенная 
         :param i: Номер конечно элемента
         :return: матрица жесткости
         """""
