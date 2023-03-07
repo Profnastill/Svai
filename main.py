@@ -4,12 +4,15 @@ import math
 import numpy as np
 import pandas as pd
 import xlwings as xw
+import matrix_reshen as mt
 
 pd.options.display.max_rows = 1000
 pd.options.display.max_columns = 20
 pd.options.display.expand_frame_repr = False
 # movies.head()
 
+
+mt.Matrix
 
 beton_type = ["В3,5", "В5", "В7,5", "В10", "В12,5", "В15", "В20", "В25", "В30", "В35", "В40", "В45", "В50", "В55",
               "В60", "В70", "B80", "B90", "В100"]
@@ -190,6 +193,11 @@ class SvAi:
         a_33 = 13 / 35 * table["k"] * table["b"] * self.ln_elem + 12 * self.Eb * I / self.ln_elem ** 3
         a_34 = a_43 = -11 / 210 * table["k"] * table["b"] * self.ln_elem ** 2 - 6 * self.Eb * I / self.ln_elem ** 2
         a_44 = 1 / 105 * table["k"] * table["b"] * self.ln_elem ** 3 + 4 * self.Eb * I / self.ln_elem
+
+
+
+
+
 
         k_elem = np.array([[a_11, a_12, a_13, a_14], [a_21, a_22, a_23, a_24], [a_31, a_32, a_33, a_34],
                            [a_41, a_42, a_43, a_44]])  # self.ln лина конечного элемента
