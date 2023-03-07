@@ -6,6 +6,13 @@ import numpy as np
 import pandas as pd
 import xlwings as xw
 
+import matrix_reshen
+import matrix_reshen as mr
+
+
+mr=matrix_reshen.Matrix()
+
+
 pd.options.display.max_rows = 1000
 pd.options.display.max_columns = 30
 pd.options.display.expand_frame_repr = False
@@ -52,6 +59,7 @@ class SvAi:
         :return:
 
         """
+
         print("табл")
         self.ln_elem = 200  # Длина конечного элемента мм
         self.type_sv = type_sv
@@ -108,7 +116,7 @@ class SvAi:
         self.len_matr = len(self.table_bs)
         matrix_force = self.fun_Matrix_Force()
         print(self.table_bs["B"])
-        self.table_bs["U"] = self.table_bs["B"].apply(lambda row: self.fun_matrix_u(matrix_force, row))
+        #self.table_bs["U"] = self.table_bs["B"].apply(lambda row: self.fun_matrix_u(matrix_force, row))
 
         print(self.table_bs)
 
@@ -258,14 +266,27 @@ class SvAi:
                                                                     table["Bi__3"]) + 2 * table["lsv"] ** 3 * table[
                                "K"] * (4 * table["fi1"] - table["fi2"]))
 
-        k_elem = ([a_11, a_12, a_13, a_14],
-                  [a_21, a_22, a_23, a_24],
-                  [a_31, a_32, a_33, a_34],
-                  [a_41, a_42, a_43, a_44])  # self.ln лина конечного элемента
 
-        R_11 = np.array([[a_11, a_12], [a_21, a_22]])
-        R_22 =np.array([[a_33,a_34],[a_43,a_44]])
-        R_12=R_21=np.array([[a_13,a_14],[a_23,a_24]])
+        R_11 = np.block([[a_11, a_12], [a_21, a_22]])
+        print(f"R11= \n {self.R_11}")
+        print(f" Размер массива {self.R_11.ndim}")
+        R_22 = np.block([[a_33, a_34], [a_43, a_44]])
+        print(f"R_22=\n{self.R_22} {self.R_22.shape}")
+
+        R_12 = self.R_21 = np.block([[a_13, a_14], [a_23, a_24]])
+        R_21 = self.R_21.transpose()
+        print(f"R_12= \n{self.R_12}")
+
+        print(f"cложен \n {self.R_22 + self.R_11}")
+
+        mr.R_11=R_11
+        mr.R_22=R_22
+
+
+
+        self.k = np.block([[self.R_11, self.R_12], [self.R_21, self.R_22]])
+        print(f" Размер массива \n k {self.k}  dim\n{self.k.ndim} \n shape{self.k.shape}")
+        return self.k
 
 
         return k_elem  # Матрица жесткости

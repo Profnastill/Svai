@@ -34,8 +34,8 @@ class Matrix:
         a -= 0
         """"""""
         test = np.zeros((a, a))  # Заполнени матрицы нулями
-        # test = np.eye(test.shape[0], dtype=int)# Заполнение значениями
-        test = np.diagflat([range(a)])
+        #test = np.eye(test.shape[0], dtype=int)# Заполнение значениями
+        #test = np.diagflat([range(a)])
         print(test)
         return test
 
@@ -85,8 +85,7 @@ class Matrix:
         a3 = test[2*i + 2:(2*i + 4), 2 * i+2 :2 * i + 4] = self.R_22  # +R_11(2)
         # Надо заполнить матрицу жесткости а потом складывать матрицы жесткости
 
-        print(f"test {i},\n {test}")
-        print(test)
+        print(f"Матрица жесткости \n {test}")
         print(test.shape)
         return test
 
@@ -95,5 +94,5 @@ if __name__ == '__main__':
     mat = Matrix()
     mat.mat_Test()
     test=mat.test_matrix_add(14)# создание единичной матрицы заполненно 1
-    mat.mat_umn2(test,i=12)# i номер КЭ для которого ищем матрицу
+    mat.mat_umn2(test,i=13)# i номер КЭ для которого ищем матрицу
 

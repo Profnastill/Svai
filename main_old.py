@@ -12,7 +12,7 @@ pd.options.display.expand_frame_repr = False
 # movies.head()
 
 
-mt.Matrix
+mt=mt.Matrix()
 
 beton_type = ["В3,5", "В5", "В7,5", "В10", "В12,5", "В15", "В20", "В25", "В30", "В35", "В40", "В45", "В50", "В55",
               "В60", "В70", "B80", "B90", "В100"]
