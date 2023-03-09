@@ -108,6 +108,8 @@ class SvAi:
         self.table_bs["K"] = self.table_bs.apply(lambda row: self.Koeffic_Postely(row),
                                                  axis=1)  # определяем коэффициент постели
         self.table_bs["B"] = self.table_bs.apply(lambda row: self.matrix_B_piramida(row), axis=1)  # Матрица жесткости
+        self.table_bs["Kob"]=self.table_bs.apply(lambda row: mr.mat_umn(), axis=1)# получение значений для обобшенной матрицы
+
 
         print(self.table_bs["B"])
         matrix_B = np.array(self.table_bs["B"].tolist())
@@ -279,12 +281,9 @@ class SvAi:
 
         print(f"cложен \n {self.R_22 + self.R_11}")
 
-        mr.R_11 = R_11
-        mr.R_22 = R_22
-
-
 
         self.k = np.block([[self.R_11, self.R_12], [self.R_21, self.R_22]])
+
         print(f" Размер массива \n k {self.k}  dim\n{self.k.ndim} \n shape{self.k.shape}")
         return self.k
 
