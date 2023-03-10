@@ -38,3 +38,5 @@ class test:
 a=test()
 a.b=4
 a.fun()
+
+print(5**2+4)

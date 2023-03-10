@@ -18,9 +18,13 @@ class Matrix:
     Получение обобщенной матрицы жесткостей
     """
 
-    def __init__(self):
-        None
-        #self.test = self.test_matrix_add(14)
+    def __init__(self,n_kone):
+        """
+
+        :param n_kone: Количество конечных элементов
+        """
+
+        self.test = self.test_matrix_add(n_kone)
 
     def test_matrix_add(self, n):
         """
@@ -37,7 +41,7 @@ class Matrix:
         test = np.zeros((a, a))  # Заполнени матрицы нулями
         # test = np.eye(test.shape[0], dtype=int)# Заполнение значениями
         # test = np.diagflat([range(a)])
-        print(test)
+        #print(test)
         self.test=test
         return test
 
@@ -73,16 +77,18 @@ class Matrix:
         print(f" Размер массива \n k {self.k}  dim\n{self.k.ndim} \n shape{self.k.shape}")
         return self.k
 
-    def mat_umn(self, i):
+    def mat_umn(self,matrix_R, i):
         """
         :param test: Матрица нулевая обобщенная  вариант 1 основной
         :param i: Номер конечно элемента
         :return: матрица жесткости
         """""
-        a = self.test[2 * i:(2 * i + 4), 2 * i :2 * i + 4] = self.k  # 'если вставлять общую матрицу
-        print(f"Матрица жесткости \n {test}")
-        print(test.shape)
-        return test
+        a=np.copy(self.test)
+        a[2 * i:(2 * i + 4), 2 * i :2 * i + 4] = matrix_R # 'если вставлять общую матрицу
+        #print(f"Матрица жесткости \n {a}")
+        #print(a.shape)
+
+        return a
 
         ''''''''''
     def mat_umn_old(self, test, i):
@@ -106,10 +112,11 @@ class Matrix:
         '''
 
 if __name__ == '__main__':
-    mat = Matrix()
+    n = 10
+    mat = Matrix(n)
     mat.mat_Test()
     print(type(mat))
-    n = 10
-    test = mat.test_matrix_add(n)  # создание единичной матрицы заполненно 1
+
+    #test = mat.test_matrix_add(n)  # создание единичной матрицы заполненно 1
     mat.mat_umn( i=2)  # i номер КЭ для которого ищем матрицу до n
    # mat.mat_umn_old(test, i=1)  # номер КЭ для которого ищем матрицу до n
