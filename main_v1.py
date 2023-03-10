@@ -162,10 +162,12 @@ class SvAi:
             col=col.tolist()
             col=list(map(lambda x:x+last,col))
 
-            f= [data_grunt.iloc[i]] * len(col)  # Размножаем строку таблицы грунта
+            f= [data_grunt.iloc[i]] * (len(col)-1)  # Размножаем строку таблицы грунта
             da=da.append(f,ignore_index=True)
             lis.extend(col)# Список координат свай
+
             last = lis[-1]
+            lis.pop()
 
         da["x"]=lis#  Координаты начала и конца конечного элемента
         da["lкэ"]=da["x"].diff()
