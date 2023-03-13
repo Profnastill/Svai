@@ -12,7 +12,7 @@ pd.options.display.expand_frame_repr = False
 # movies.head()
 
 
-mt=mt.Matrix()
+
 
 beton_type = ["В3,5", "В5", "В7,5", "В10", "В12,5", "В15", "В20", "В25", "В30", "В35", "В40", "В45", "В50", "В55",
               "В60", "В70", "B80", "B90", "В100"]
@@ -112,13 +112,13 @@ class SvAi:
         lis = []
         print("dfs")
         for i in range(len(data_grunt)):
-            if self.ln_elem <= data_grunt.iloc[i]["lsv"]:
-                col = data_grunt.iloc[i]["lsv"] // self.ln_elem
-                data_grunt.at[i + 1, "lsv"] = self.ln_elem
+            if self.ln_elem <= data_grunt.iloc[i]["lsloy"]:
+                col = data_grunt.iloc[i]["lsloy"] // self.ln_elem
+                data_grunt.at[i + 1, "lsloy"] = self.ln_elem
                 lis.append(col)
 
         data_grunt = data_grunt.loc[data_grunt.index.repeat(lis)].reset_index(drop=True)
-        data_grunt["sumLen"] = data_grunt["lsv"].cumsum()
+        data_grunt["sumLen"] = data_grunt["lsloy"].cumsum()
         data_grunt = data_grunt.query("sumLen<= @self.l")
         return data_grunt
 
@@ -194,7 +194,22 @@ class SvAi:
         a_34 = a_43 = -11 / 210 * table["k"] * table["b"] * self.ln_elem ** 2 - 6 * self.Eb * I / self.ln_elem ** 2
         a_44 = 1 / 105 * table["k"] * table["b"] * self.ln_elem ** 3 + 4 * self.Eb * I / self.ln_elem
 
+        R_11 = np.block([[a_11, a_12], [a_21, a_22]])
+        print(f"R11= \n {R_11}")
+        print(f" Размер массива {R_11.ndim}")
+        R_22 = np.block([[a_33, a_34], [a_43, a_44]])
+        print(f"R_22=\n{R_22} {R_22.shape}")
 
+        R_12 = self.R_21 = np.block([[a_13, a_14], [a_23, a_24]])
+        R_21 = self.R_21.transpose()
+        print(f"R_12= \n{R_12}")
+
+        print(f"cложен \n {R_22 + R_11}")
+
+        k = np.block([[R_11, R_12], [R_21, R_22]])
+
+        print(f" Размер массива \n k {k}  dim\n{k.ndim} \n shape{k.shape}")
+        return k
 
 
 
@@ -224,20 +239,21 @@ def table_iterrator(table: pd.DataFrame):
 if __name__ == '__main__':
     book = xw.books
 
-    sheet = book.active.sheets
+    # sheet = book.active.sheets
+    wb = xw.Book(r'Расчет свай.xlsx')
 
-    sheet_svai = xw.sheets["svai"]
-    sheet_grunt = xw.sheets["grunt"]
+    sheet_svai = wb.sheets["svai"]
+    sheet_grunt = wb.sheets["grunt"]
 
     data_grunt = sheet_grunt.range("A1").options(pd.DataFrame, expand='table', index_col=True).value
-    data_grunt["lsv"] = data_grunt["lsv"].apply(lambda x: x * 1000)  # Перевод в мм
+    data_grunt["lsloy"] = data_grunt["lsloy"].apply(lambda x: x * 1000)  # Перевод в мм
     # data_grunt["ki"] = data_grunt.appply()
 
-    sheet = sheet.active
     data_svai = sheet_svai.range("A1").options(pd.DataFrame, expand='table', index_col=False).value  # Сваи
     data_svai: pd.DataFrame
     data_svai = data_svai.reset_index()
 
     table_iterrator(data_svai)  # Запуск построчной передачи в класс
+
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

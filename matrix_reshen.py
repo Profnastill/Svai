@@ -5,12 +5,6 @@ np.set_printoptions(edgeitems=4, linewidth=180)
 np.set_printoptions(precision=3)
 
 np.core.arrayprint._line_width = 80
-a = np.array([[1, 2], [3, 4]])
-print(a.shape)
-b = np.array([44, 4, 4, 3, 4, 5, ])
-
-b = np.diagflat([(1, 2, 3), (4, 5, 6), (7, 8, 9)])
-b = np.diagflat([(5, 4, 6), (6, 5, 26), (7, 8, 9)])
 
 
 class Matrix:
@@ -22,10 +16,17 @@ class Matrix:
         """
 
         :param n_kone: Количество конечных элементов
+        :matrix_R: Матрица вставляемая
+        :i: Позиция в диагональной матрице целое
         """
 
-        self.test = self.test_matrix_add(n_kone)
+        self.__test=self.test_matrix_add(n_kone)
+        #self.diagonl_mat=self.mat_umn(matrix_R,i)# Получение диагональной матрицы
 
+    def _get_nul_mat(self):
+        return self.__test
+
+    nul_mat=property(fget=_get_nul_mat)
     def test_matrix_add(self, n):
         """
         Создание матрицы заполненной 1 по горизонтали
@@ -42,8 +43,9 @@ class Matrix:
         # test = np.eye(test.shape[0], dtype=int)# Заполнение значениями
         # test = np.diagflat([range(a)])
         #print(test)
-        self.test=test
+
         return test
+
 
     def mat_Test(self):
         """
@@ -77,18 +79,21 @@ class Matrix:
         print(f" Размер массива \n k {self.k}  dim\n{self.k.ndim} \n shape{self.k.shape}")
         return self.k
 
+
+
     def mat_umn(self,matrix_R, i):
         """
         :param test: Матрица нулевая обобщенная  вариант 1 основной
         :param i: Номер конечно элемента
         :return: матрица жесткости
         """""
-        a=np.copy(self.test)
-        a[2 * i:(2 * i + 4), 2 * i :2 * i + 4] = matrix_R # 'если вставлять общую матрицу
+        m=[]
+        m=np.copy(self.nul_mat)
+        m[2 * i:(2 * i + 4), 2 * i :2 * i + 4] = matrix_R # 'если вставлять общую матрицу
         #print(f"Матрица жесткости \n {a}")
         #print(a.shape)
 
-        return a
+        return m
 
         ''''''''''
     def mat_umn_old(self, test, i):
@@ -108,7 +113,7 @@ class Matrix:
 
         print(f"Матрица жесткости  2\n {test}")
         print(test.shape)
-        return test
+        return test_1
         '''
 
 if __name__ == '__main__':
