@@ -1,3 +1,4 @@
+# модуль создания обобщенной диагональной матрицы
 import numpy as np
 
 np.set_printoptions(edgeitems=30, linewidth=10000)
@@ -14,7 +15,6 @@ class Matrix:
 
     def __init__(self,n_kone):
         """
-
         :param n_kone: Количество конечных элементов
         :matrix_R: Матрица вставляемая
         :i: Позиция в диагональной матрице целое
@@ -124,4 +124,5 @@ if __name__ == '__main__':
 
     #test = mat.test_matrix_add(n)  # создание единичной матрицы заполненно 1
     mat.mat_umn( i=2)  # i номер КЭ для которого ищем матрицу до n
-   # mat.mat_umn_old(test, i=1)  # номер КЭ для которого ищем матрицу до n
+    #mat.mat_umn_old(test, i=1)  # номер КЭ для которого ищем матрицу до n
+
